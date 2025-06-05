@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幼儿园教师实习日志</title>
+    <style>
+        :root {
+            --primary-color: #ffb6c1;
+            --secondary-color: #ffc0cb;
+            --text-color: #4a4a4a;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff5f6;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 182, 193, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .week-container {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .week-container.active {
+            display: block;
+        }
+
+        .week-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .day-entry {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .day-entry:hover {
+            transform: translateX(10px);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-button:hover {
+            background-color: #ff8da1;
+        }
+
+        .nav-button:disabled {
+            background-color: #ffd6dc;
+            cursor: not-allowed;
+        }
+
+        .heart-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary-color);
+            transform: rotate(45deg);
+            animation: heartExplode 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            left: -10px;
+        }
+
+        .heart::after {
+            top: -10px;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            display: none;
+            text-align: center;
+            animation: messagePop 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes heartExplode {
+            0% {
+                transform: rotate(45deg) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(45deg) scale(1);
+                opacity: 0;
+            }
+        }
+
+        @keyframes messagePop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>幼儿园教师实习日志</h1>
+        <div id="weeks-container"></div>
+        <div class="navigation">
+            <button class="nav-button" id="prev-week" disabled>上一周</button>
+            <button class="nav-button" id="next-week">下一周</button>
+        </div>
+    </div>
+    <div class="heart-container" id="heart-container"></div>
+    <div class="message" id="message"></div>
+
+    <script>
+        const messages = [
+            "亲爱的，你真的很棒！",
+            "你的努力一定会开花结果！",
+            "你是最优秀的幼儿园老师！",
+            "你的爱心让世界更美好！",
+            "继续加油，你是最棒的！"
+        ];
+
+        let currentWeek = 0;
+        const weeks = [
+            // 第一周
+            {
+                title: "第一周（9月2日-9月6日）",
+                days: [
+                    "周一：今天第一次来到幼儿园，小朋友们都很热情，主动和我打招呼。",
+                    "周二：带小朋友们做早操，他们跳得可开心了。",
+                    "周三：教小朋友们认识颜色，用彩纸做手工。",
+                    "周四：和小朋友们一起种小植物，他们都很认真。",
+                    "周五：组织小朋友们玩积木，锻炼动手能力。"
+                ]
+            },
+            // 第二周
+            {
+                title: "第二周（9月9日-9月13日）",
+                days: [
+                    "周一：教小朋友们唱儿歌，声音真可爱。",
+                    "周二：带小朋友们认识数字，用水果做教具。",
+                    "周三：和小朋友们一起画画，想象力真丰富。",
+                    "周四：组织户外活动，小朋友们玩得很开心。",
+                    "周五：教小朋友们整理玩具，培养好习惯。"
+                ]
+            },
+            // 第三周
+            {
+                title: "第三周（9月16日-9月20日）",
+                days: [
+                    "周一：带小朋友们认识动物，模仿动物叫声。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第四周
+            {
+                title: "第四周（9月23日-9月27日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察天气变化。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第五周
+            {
+                title: "第五周（9月30日-10月4日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解传统文化。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做手工，庆祝节日。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第六周
+            {
+                title: "第六周（10月7日-10月11日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第七周
+            {
+                title: "第七周（10月14日-10月18日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第八周
+            {
+                title: "第八周（10月21日-10月25日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第九周
+            {
+                title: "第九周（10月28日-11月1日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察自然。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第十周
+            {
+                title: "第十周（11月4日-11月8日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解文化。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第十一周
+            {
+                title: "第十一周（11月11日-11月15日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第十二周
+            {
+                title: "第十二周（11月18日-11月22日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第十三周
+            {
+                title: "第十三周（11月25日-11月29日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第十四周
+            {
+                title: "第十四周（12月2日-12月6日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察自然。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第十五周
+            {
+                title: "第十五周（12月9日-12月13日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解文化。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第十六周
+            {
+                title: "第十六周（12月16日-12月20日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第十七周
+            {
+                title: "第十七周（12月23日-12月27日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第十八周
+            {
+                title: "第十八周（12月30日-1月3日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 寒假
+            {
+                title: "寒假（1月18日-2月17日）",
+                days: [
+                    "周一：寒假开始，好好休息。",
+                    "周二：寒假期间，整理教学资料。",
+                    "周三：寒假期间，准备新学期教案。",
+                    "周四：寒假期间，学习新的教学方法。",
+                    "周五：寒假期间，期待新学期开始。"
+                ]
+            },
+            // 第十九周
+            {
+                title: "第十九周（2月18日-2月21日）",
+                days: [
+                    "周一：寒假结束，小朋友们都很想念我。",
+                    "周二：教小朋友们做手指操，恢复活力。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第二十周
+            {
+                title: "第二十周（2月24日-2月28日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第二十一周
+            {
+                title: "第二十一周（3月3日-3月7日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第二十二周
+            {
+                title: "第二十二周（3月10日-3月14日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第二十三周
+            {
+                title: "第二十三周（3月17日-3月21日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察自然。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第二十四周
+            {
+                title: "第二十四周（3月24日-3月28日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解文化。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第二十五周
+            {
+                title: "第二十五周（3月31日-4月4日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第二十六周
+            {
+                title: "第二十六周（4月7日-4月11日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第二十七周
+            {
+                title: "第二十七周（4月14日-4月18日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第二十八周
+            {
+                title: "第二十八周（4月21日-4月25日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察自然。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第二十九周
+            {
+                title: "第二十九周（4月28日-5月2日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解文化。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第三十周
+            {
+                title: "第三十周（5月5日-5月9日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第三十一周
+            {
+                title: "第三十一周（5月12日-5月16日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识数字，用积木计数。"
+                ]
+            },
+            // 第三十二周
+            {
+                title: "第三十二周（5月19日-5月23日）",
+                days: [
+                    "周一：带小朋友们认识动物，了解习性。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起画画，发挥想象。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识形状，用积木拼图。"
+                ]
+            },
+            // 第三十三周
+            {
+                title: "第三十三周（5月26日-5月30日）",
+                days: [
+                    "周一：带小朋友们认识季节，观察自然。",
+                    "周二：教小朋友们做简单的科学实验。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：教小朋友们认识时间，培养时间观念。"
+                ]
+            },
+            // 第三十四周
+            {
+                title: "第三十四周（6月2日-6月6日）",
+                days: [
+                    "周一：带小朋友们认识节日，了解文化。",
+                    "周二：教小朋友们做简单的折纸。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩音乐游戏。",
+                    "周五：教小朋友们认识字母，培养语感。"
+                ]
+            },
+            // 第三十五周
+            {
+                title: "第三十五周（6月9日-6月13日）",
+                days: [
+                    "周一：带小朋友们认识水果，学习分类。",
+                    "周二：教小朋友们做手指操，锻炼小肌肉。",
+                    "周三：和小朋友们一起做运动，增强体质。",
+                    "周四：组织小朋友们玩角色扮演游戏。",
+                    "周五：教小朋友们认识颜色，用彩笔作画。"
+                ]
+            },
+            // 第三十六周
+            {
+                title: "第三十六周（6月16日-6月20日）",
+                days: [
+                    "周一：带小朋友们认识蔬菜，学习健康饮食。",
+                    "周二：教小朋友们做简单的数学游戏。",
+                    "周三：和小朋友们一起做手工，创意无限。",
+                    "周四：组织小朋友们玩益智游戏。",
+                    "周五：实习结束，和小朋友们依依不舍。"
+                ]
+            }
+        ];
+
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            document.getElementById('heart-container').appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
+
+        function showMessage() {
+            const message = document.getElementById('message');
+            message.textContent = messages[Math.floor(Math.random() * messages.length)];
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 2000);
+        }
+
+        function createHearts() {
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                setTimeout(() => createHeart(x, y), i * 100);
+            }
+        }
+
+        function showWeek(index) {
+            const weeksContainer = document.getElementById('weeks-container');
+            weeksContainer.innerHTML = '';
+
+            const weekDiv = document.createElement('div');
+            weekDiv.className = 'week-container active';
+
+            const title = document.createElement('h2');
+            title.className = 'week-title';
+            title.textContent = weeks[index].title;
+            weekDiv.appendChild(title);
+
+            weeks[index].days.forEach(day => {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-entry';
+                dayDiv.textContent = day;
+                weekDiv.appendChild(dayDiv);
+            });
+
+            weeksContainer.appendChild(weekDiv);
+
+            document.getElementById('prev-week').disabled = index === 0;
+            document.getElementById('next-week').disabled = index === weeks.length - 1;
+        }
+
+        document.getElementById('next-week').addEventListener('click', () => {
+            if (currentWeek < weeks.length - 1) {
+                currentWeek++;
+                showWeek(currentWeek);
+                createHearts();
+                showMessage();
+            }
+        });
+
+        document.getElementById('prev-week').addEventListener('click', () => {
+            if (currentWeek > 0) {
+                currentWeek--;
+                showWeek(currentWeek);
+            }
+        });
+
+        // 初始化显示第一周
+        showWeek(0);
+    </script>
+</body>
+</html> 
